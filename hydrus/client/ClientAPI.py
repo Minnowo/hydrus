@@ -6,6 +6,7 @@ from hydrus.core import HydrusExceptions
 from hydrus.core import HydrusGlobals as HG
 from hydrus.core import HydrusSerialisable
 from hydrus.core import HydrusTags
+from hydrus.core import HydrusDomains
 from hydrus.core import HydrusTime
 
 from hydrus.client.search import ClientSearch
@@ -215,7 +216,12 @@ class APIPermissions( HydrusSerialisable.SerialisableBaseNamed ):
     SERIALISABLE_NAME = 'Client API Permissions'
     SERIALISABLE_VERSION = 1
     
-    def __init__( self, name = 'new api permissions', access_key = None, basic_permissions = None, search_tag_filter = None ):
+    def __init__( self, 
+                 name = 'new api permissions', 
+                 access_key = None, 
+                 basic_permissions = None, 
+                 search_tag_filter = None,
+                 domain_filter = None ):
         
         if access_key is None:
             
@@ -230,14 +236,18 @@ class APIPermissions( HydrusSerialisable.SerialisableBaseNamed ):
         if search_tag_filter is None:
             
             search_tag_filter = HydrusTags.TagFilter()
-            
-        
+
+        if domain_filter is None:
+
+            domain_filter = HydrusDomains.DomainFilter()
+
         HydrusSerialisable.SerialisableBaseNamed.__init__( self, name )
         
         self._access_key = access_key
         
         self._basic_permissions = set( basic_permissions )
         self._search_tag_filter = search_tag_filter
+        self._domain_filter: HydrusDomains.DomainFilter = domain_filter
         
         self._last_search_results = None
         self._search_results_timeout = 0
@@ -321,6 +331,18 @@ class APIPermissions( HydrusSerialisable.SerialisableBaseNamed ):
             
             raise HydrusExceptions.InsufficientCredentialsException( 'You do not have permission to: {}'.format( basic_permission_to_str_lookup[ permission ] ) )
             
+
+    def CheckPermissionForDomain( self, service_key: bytes ):
+
+        with self._lock:
+
+            if self._domain_filter.DomainOK( service_key ):
+                return
+
+            error_text = """You do not have permission to search files within this domain: {}"""
+            error_text = error_text.format(service_key)
+
+            raise HydrusExceptions.InsufficientCredentialsException( error_text )
         
     
     def CheckPermissionToSeeFiles( self, hash_ids: typing.Collection[ int ] ):
@@ -463,8 +485,14 @@ class APIPermissions( HydrusSerialisable.SerialisableBaseNamed ):
             
             self._search_tag_filter = search_tag_filter
             
+
+    def SetSearchDomainFilter( self, domain_filter: HydrusDomains.DomainFilter ):
         
-    
+        with self._lock:
+            
+            self._domain_filter = domain_filter 
+
+
     def ToHumanString( self ):
         
         s = 'API Permissions ({}): '.format( self._name )

@@ -96,6 +96,11 @@ class EditAPIPermissionsPanel( ClientGUIScrolledPanels.EditPanel ):
         message += 'If you want to allow all tags, just leave it as is, permitting everything. If you want to limit it to just one tag, such as "do waifu2x on this", set up a whitelist with only that tag allowed.'
         
         self._search_tag_filter = ClientGUITags.TagFilterButton( self, message, search_tag_filter, label_prefix = 'permitted tags: ' )
+
+        message = 'The API will only permit searching for files that pass through this filter.'
+        message += os.linesep * 2
+        message += 'If you want to allow all files, just leave it as is, permitting everything.'
+        self._search_file_domain_filter = ClientGUITags.TagFilterButton( self, message, search_tag_filter, label_prefix = 'permitted file domains: ' )
         
         #
         
@@ -119,6 +124,7 @@ class EditAPIPermissionsPanel( ClientGUIScrolledPanels.EditPanel ):
         rows.append( ( 'name: ', self._name ) )
         rows.append( ( 'permissions: ', self._basic_permissions ) )
         rows.append( ( 'tag search permissions: ', self._search_tag_filter ) )
+        rows.append( ( 'domain search permissions: ', self._search_file_domain_filter ) )
         
         gridbox = ClientGUICommon.WrapInGrid( self, rows )
         

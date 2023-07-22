@@ -218,7 +218,7 @@ class Controller( HydrusController.HydrusController ):
         self._idle_started = None
         
         self.client_files_manager = None
-        self.services_manager = None
+        self.services_manager:ClientServices.ServicesManager = None
         
         Controller.my_instance = self
         
